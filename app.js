@@ -83,7 +83,17 @@ const promptUser = () => {
         {
             type: 'input',
             name: 'name',
-            message: 'What is your name?'
+            message: 'What is your name? (Required)',
+            validate: nameInput => {
+                if (nameInput) {
+                    return true;
+                } else {
+                    console.log('Please enter your name!');
+                    return false;
+                }
+                
+                }
+            
         },
         {
             type: 'input',
@@ -91,23 +101,55 @@ const promptUser = () => {
             message: 'Enter your Github Username'
         },
         {
+            type: 'confirm',
+            name: 'confirmAbout',
+            message: 'Would you like to enter some information about yourself for an "About" section?',
+            default: true
+        },
+        {
             type: 'input',
             name: 'about',
-            message: ' Provide some information about yourself:'
+            message: ' Provide some information about yourself:',
+            when: ( {confirmAbout}) => {
+                if (confirmAbout) {
+                    return ture;
+                } else {
+                    return false;
+                }
+            }
         }
     ]);
      
 };
-promptUser().then (answers => console.log(answers));
+promptUser()
+.then(promptProject)
+.then (portfolioData => {
+    console.log(portfolioData);
+});
 
-const promptProject = () => {
+// (answers => console.log(answers));
+
+const promptProject = portfolioData => {
+    // If there is no 'projects' array property, create one
+    if (!portfolioData.projects){
+    portfolioData.projects =[];
+    }
 
     console.log(`
     =================
     Add a New Project 
     =================
     `);
-    return inquirer.prompt([
+    return inquirer.prompt
+    .then(projectData => {
+        portfolioData.projects.push(projectData);
+        if (projectData.confirmAddProject) { 
+            return promptProject(portfolioData);
+        } else {
+            return portfolioData;
+        }
+    });
+        ([
         {
             type: 'input',
             name: 'name',
